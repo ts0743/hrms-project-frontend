@@ -1,0 +1,186 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* HR Dashboard Design System - Merged Lightweight & Professional */
+
+@layer base {
+  :root {
+    /* Core Brand Colors */
+    --background: 210 20% 98%;
+    --foreground: 210 50% 10%;
+
+    /* Card surfaces */
+    --card: 0 0% 100%;
+    --card-foreground: 210 50% 10%;
+
+    /* Popover */
+    --popover: 0 0% 100%;
+    --popover-foreground: 210 50% 10%;
+
+    /* Primary & Secondary */
+    --primary: 210 52% 24%;
+    --primary-foreground: 210 20% 98%;
+    --secondary: 210 18% 93%;
+    --secondary-foreground: 210 50% 10%;
+
+    /* Muted & Accent */
+    --muted: 210 18% 95%;
+    --muted-foreground: 210 12% 50%;
+    --accent: 210 100% 50%;
+    --accent-foreground: 0 0% 100%;
+
+    /* Status Colors */
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --info: 199 89% 48%;
+    --info-foreground: 0 0% 100%;
+
+    /* Borders, Inputs, and Radius */
+    --border: 210 16% 88%;
+    --input: 210 16% 88%;
+    --ring: 210 100% 50%;
+    --radius: 0.5rem;
+
+    /* Sidebar */
+    --sidebar-background: 210 52% 18%;
+    --sidebar-foreground: 210 20% 85%;
+    --sidebar-primary: 210 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 52% 24%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 40% 28%;
+    --sidebar-ring: 210 100% 50%;
+    --sidebar-muted: 210 30% 35%;
+
+    /* Chart Colors */
+    --chart-1: 210 100% 50%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 38 92% 50%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 0 72% 51%;
+
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(215 60% 35%));
+    --gradient-accent: linear-gradient(135deg, hsl(var(--accent)), hsl(200 85% 60%));
+    --gradient-success: linear-gradient(135deg, hsl(var(--success)), hsl(162 55% 45%));
+    --gradient-warning: linear-gradient(135deg, hsl(var(--warning)), hsl(28 90% 55%));
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 hsl(var(--foreground)/0.05);
+    --shadow-md: 0 4px 6px -1px hsl(var(--foreground)/0.08), 0 2px 4px -2px hsl(var(--foreground)/0.05);
+    --shadow-lg: 0 10px 15px -3px hsl(var(--foreground)/0.1), 0 4px 6px -4px hsl(var(--foreground)/0.05);
+    --shadow-card: 0 1px 3px 0 hsl(var(--foreground)/0.06), 0 1px 2px -1px hsl(var(--foreground)/0.06);
+  }
+
+  .dark {
+    --background: 210 50% 6%;
+    --foreground: 210 20% 92%;
+    --card: 210 50% 10%;
+    --card-foreground: 210 20% 92%;
+    --popover: 210 50% 10%;
+    --popover-foreground: 210 20% 92%;
+    --primary: 210 100% 65%;
+    --primary-foreground: 210 50% 6%;
+    --secondary: 210 30% 18%;
+    --secondary-foreground: 210 20% 92%;
+    --muted: 210 30% 15%;
+    --muted-foreground: 210 12% 55%;
+    --accent: 210 100% 50%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 62% 40%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 210 30% 20%;
+    --input: 210 30% 20%;
+    --ring: 210 100% 50%;
+    --sidebar-background: 210 50% 8%;
+    --sidebar-foreground: 210 20% 80%;
+    --sidebar-primary: 210 100% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 50% 15%;
+    --sidebar-accent-foreground: 0 0% 100%;
+    --sidebar-border: 210 30% 18%;
+    --sidebar-ring: 210 100% 50%;
+    --sidebar-muted: 210 20% 30%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Custom scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px; height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--muted)); border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground)/0.3); border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground)/0.5);
+  }
+}
+
+@layer components {
+  /* KPI Card */
+  .kpi-card {
+    @apply relative overflow-hidden rounded-lg border border-border bg-card p-5 shadow-sm transition-all duration-200;
+    box-shadow: var(--shadow-card);
+  }
+  .kpi-card:hover {
+    box-shadow: var(--shadow-md);
+    transform: translateY(-1px);
+  }
+  .kpi-card-gradient {
+    @apply absolute inset-0 opacity-5;
+    background: var(--gradient-primary);
+  }
+
+  /* Sidebar Links */
+  .sidebar-link { @apply flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors; }
+  .sidebar-link-active { @apply bg-sidebar-accent text-sidebar-primary; }
+  .sidebar-link-inactive { @apply text-sidebar-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-primary; }
+
+  /* Status Badge */
+  .status-badge { @apply inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium; }
+  .status-badge-success { @apply bg-success/10 text-success; }
+  .status-badge-warning { @apply bg-warning/10 text-warning; }
+  .status-badge-error { @apply bg-destructive/10 text-destructive; }
+  .status-badge-info { @apply bg-info/10 text-info; }
+  .status-badge-pending { @apply bg-muted text-muted-foreground; }
+
+  /* Data Table */
+  .data-table { @apply w-full text-sm border-collapse; }
+  .data-table th { @apply text-left font-medium text-muted-foreground px-4 py-3 border-b bg-muted/30; }
+  .data-table td { @apply px-4 py-3 border-b; }
+  .data-table tr:hover td { @apply bg-muted/20; }
+
+  /* Page Header */
+  .page-header { @apply mb-6; }
+  .page-title { @apply text-2xl font-semibold tracking-tight text-foreground; }
+  .page-description { @apply text-sm text-muted-foreground mt-1; }
+
+  /* Empty State */
+  .empty-state { @apply flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-muted/30 p-12 text-center; }
+  .empty-state-icon { @apply mb-4 h-12 w-12 text-muted-foreground/50; }
+  .empty-state-title { @apply text-lg font-semibold text-foreground; }
+  .empty-state-description { @apply mt-1 text-sm text-muted-foreground; }
+}
