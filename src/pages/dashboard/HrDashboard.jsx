@@ -1,7 +1,7 @@
 import React from "react";
 import { Users, CalendarDays, CalendarCheck, Building } from "lucide-react";
 
-import { KpiCard as KPICard } from "@/components/common/KPICard";
+import { KPICard } from "@/components/common/KPICard";
 import { ActivityFeed } from "@/components/common/ActivityFeed";
 
 import {

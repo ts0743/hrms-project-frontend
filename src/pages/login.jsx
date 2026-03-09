@@ -1,6 +1,14 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Eye, EyeOff, Building2, BarChart3 } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Building2,
+  Loader2,
+  Users,
+  CalendarCheck,
+  Clock,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,200 +20,254 @@ const Login = () => {
   const navigate = useNavigate();
   const login = useAuthStore((state) => state.login);
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState({
+    email: "",
+    password: "",
+    remember: false,
+  });
+
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState("");
+
+  const validate = () => {
+    if (!form.email || !form.password) {
+      setError("Please enter both email and password.");
+      return false;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(form.email)) {
+      setError("Enter a valid work email address.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError(null);
+    setError("");
+
+    if (!validate()) return;
+
     setLoading(true);
 
     try {
-      const res = await authService.login({ email, password });
+      const res = await authService.login({
+        email: form.email,
+        password: form.password,
+      });
+
       const data = res.data;
 
-      if (!data?.token) throw new Error("Token missing");
+      if (!data?.token) throw new Error("Invalid server response");
 
       login(data);
-      setEmail("");
-      setPassword("");
 
-      switch (data.role) {
-        case "ADMIN":
-        case "HR":
-          navigate("/admin/dashboard");
-          break;
-        case "EMPLOYEE":
-        case "USER":
-          navigate("/employee/dashboard");
-          break;
-        default:
-          navigate("/");
+      if (form.remember) {
+        localStorage.setItem("hris_user_email", form.email);
+      } else {
+        localStorage.removeItem("hris_user_email");
+      }
+
+      if (["ADMIN", "HR"].includes(data.role)) {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/employee/dashboard");
       }
     } catch (err) {
-      if (err.response?.status === 401) setError("Invalid email or password");
-      else if (err.response?.status === 500)
-        setError("Server error — check backend");
-      else setError("Cannot connect to backend server");
+      if (err.response?.status === 401) {
+        setError("Invalid credentials. Please try again.");
+      } else if (err.response?.status === 500) {
+        setError("Server error. Please try later.");
+      } else {
+        setError("Unable to connect. Check backend server.");
+      }
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex font-[Inter] bg-[#E7ECF4] relative overflow-hidden">
+    <div className="min-h-screen flex bg-gradient-to-br from-[#eef2ff] via-white to-[#eef2ff] font-[Inter]">
 
-      {/* Animated Glow Background */}
-      <div className="absolute inset-0 -z-10">
-        <div className="absolute w-[500px] h-[500px] bg-indigo-400/30 blur-[120px] rounded-full top-[-100px] left-[-100px] animate-blob1" />
-        <div className="absolute w-[400px] h-[400px] bg-purple-400/30 blur-[120px] rounded-full bottom-[-100px] right-[-100px] animate-blob2" />
-      </div>
+      {/* LEFT SIDE */}
+      <div className="hidden lg:flex w-1/2 bg-gradient-to-br from-[#0f172a] to-[#1e293b] text-white p-20 flex-col justify-center">
 
-      {/* LEFT SIDE — PRODUCT SHOWCASE */}
-      <div className="hidden md:flex w-1/2 bg-[#071A84] text-white p-12 flex-col justify-center relative overflow-hidden">
+        <div className="max-w-lg space-y-10">
 
-        <div className="relative z-10 max-w-md">
-          <div className="flex items-center gap-3 mb-8">
-            <Building2 className="w-10 h-10" />
-            <h1 className="text-3xl font-bold">HRIS Platform</h1>
+          <div className="flex items-center gap-3">
+            <div className="bg-white/10 p-3 rounded-2xl">
+              <Building2 size={32} />
+            </div>
+            <h1 className="text-3xl font-semibold">HRIS Platform</h1>
           </div>
 
-          <h2 className="text-4xl font-semibold leading-tight mb-6">
-            <span className="bg-gradient-to-r from-white to-indigo-200 bg-clip-text text-transparent">
-              Manage your workforce smarter
-            </span>
-          </h2>
+          <div>
+            <h2 className="text-4xl font-bold leading-tight">
+              Workforce intelligence
+              <br />
+              made effortless.
+            </h2>
 
-          <p className="text-white/80 text-lg mb-10">
-            Enterprise HR platform to manage employees, attendance, performance,
-            and operations — all in one intelligent system.
-          </p>
+            <p className="mt-4 text-white/70 text-lg">
+              Everything from employee lifecycle to performance insights —
+              unified in one elegant platform.
+            </p>
+          </div>
 
-          {/* Fake Dashboard Preview */}
-          <div className="bg-white/10 backdrop-blur-lg border border-white/20 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <BarChart3 />
-              <span className="font-semibold">Dashboard Overview</span>
+          {/* PREMIUM DASHBOARD MOCK */}
+          <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 space-y-6 shadow-2xl">
+
+            {/* Stat Grid */}
+            <div className="grid grid-cols-3 gap-4">
+
+              <div className="bg-white/10 rounded-2xl p-4 text-center">
+                <Users className="mx-auto mb-2 opacity-80" size={20} />
+                <p className="text-xl font-semibold">50</p>
+                <p className="text-xs text-white/60">Employees</p>
+              </div>
+
+              <div className="bg-white/10 rounded-2xl p-4 text-center">
+                <CalendarCheck className="mx-auto mb-2 opacity-80" size={20} />
+                <p className="text-xl font-semibold">03</p>
+                <p className="text-xs text-white/60">On Leave</p>
+              </div>
+
+              <div className="bg-white/10 rounded-2xl p-4 text-center">
+                <Clock className="mx-auto mb-2 opacity-80" size={20} />
+                <p className="text-xl font-semibold">92%</p>
+                <p className="text-xs text-white/60">Attendance Rate</p>
+              </div>
+
             </div>
 
-            <div className="space-y-3">
-              <div className="h-3 bg-white/30 rounded w-4/5"></div>
-              <div className="h-3 bg-white/30 rounded w-2/3"></div>
-              <div className="h-3 bg-white/30 rounded w-full"></div>
+            {/* Clean Minimal Chart */}
+            <div className="flex items-end gap-3 h-20 pt-4">
+              <div className="w-4 bg-white/30 rounded-lg h-8"></div>
+              <div className="w-4 bg-white/30 rounded-lg h-14"></div>
+              <div className="w-4 bg-white/30 rounded-lg h-10"></div>
+              <div className="w-4 bg-white/30 rounded-lg h-16"></div>
+              <div className="w-4 bg-white/30 rounded-lg h-12"></div>
+              <div className="w-4 bg-white/30 rounded-lg h-18"></div>
             </div>
+
           </div>
         </div>
       </div>
 
-      {/* RIGHT SIDE — LOGIN */}
-      <div className="flex w-full md:w-1/2 items-center justify-center px-6">
+      {/* RIGHT SIDE */}
+      <div className="flex w-full lg:w-1/2 items-center justify-center px-6">
+        <Card className="w-full max-w-md bg-white shadow-2xl rounded-3xl border border-gray-200">
 
-        <Card className="w-full max-w-md bg-white/60 backdrop-blur-md border border-white/70 shadow-2xl rounded-3xl transition hover:shadow-3xl">
-          
-          <div className="flex flex-col items-center pt-8">
-            <div className="p-4 rounded-2xl bg-white shadow border">
-              <Building2 className="w-8 h-8 text-[#071A84]" />
+          <div className="text-center pt-10">
+            <div className="mx-auto w-14 h-14 flex items-center justify-center rounded-2xl bg-[#0f172a]/10">
+              <Building2 className="text-[#0f172a]" />
             </div>
 
-            <h1 className="mt-6 text-3xl font-semibold text-gray-800">
-              Welcome Back
+            <h1 className="mt-6 text-2xl font-semibold text-gray-800">
+              Welcome back
             </h1>
-
             <p className="text-sm text-gray-500 mt-1">
               Sign in to continue
             </p>
           </div>
 
           <CardContent className="p-8">
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-6">
 
               {error && (
-                <div className="p-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg text-center">
+                <div className="text-sm text-red-600 bg-red-50 border border-red-200 p-3 rounded-lg text-center">
                   {error}
                 </div>
               )}
 
               <div>
-                <Label className="text-gray-700">Work Email</Label>
+                <Label>Work Email</Label>
                 <Input
+                  name="email"
                   type="email"
-                  value={email}
+                  value={form.email}
+                  onChange={handleChange}
                   disabled={loading}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="mt-2 bg-white/80 border-gray-300 focus:ring-2 focus:ring-[#071A84]"
-                  required
+                  className="mt-2 focus:ring-2 focus:ring-[#0f172a]"
                 />
               </div>
 
               <div className="relative">
-                <Label className="text-gray-700">Password</Label>
+                <Label>Password</Label>
                 <Input
+                  name="password"
                   type={showPassword ? "text" : "password"}
-                  value={password}
+                  value={form.password}
+                  onChange={handleChange}
                   disabled={loading}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="mt-2 pr-12 bg-white/80 border-gray-300 focus:ring-2 focus:ring-[#071A84]"
-                  required
+                  className="mt-2 pr-10 focus:ring-2 focus:ring-[#0f172a]"
                 />
 
                 <button
                   type="button"
                   className="absolute right-3 top-[38px] text-gray-500 hover:text-gray-800"
-                  onClick={() => setShowPassword(!showPassword)}
+                  onClick={() => setShowPassword((prev) => !prev)}
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
 
+              <div className="flex items-center justify-between text-sm">
+                <label className="flex items-center gap-2">
+                  <input
+                    type="checkbox"
+                    name="remember"
+                    checked={form.remember}
+                    onChange={handleChange}
+                  />
+                  Remember me
+                </label>
+
+                <Link
+                  to="/forgot-password"
+                  className="text-[#0f172a] hover:underline"
+                >
+                  Forgot password?
+                </Link>
+              </div>
+
               <Button
                 type="submit"
                 disabled={loading}
-                className="w-full py-3 text-white font-semibold rounded-lg bg-[#071A84] hover:bg-[#06156a] transition-all duration-300 hover:scale-[1.02]"
+                className="w-full py-3 bg-[#0f172a] hover:bg-black text-white rounded-xl transition-all duration-300"
               >
-                {loading ? "Authenticating..." : "Sign In"}
+                {loading ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <Loader2 className="animate-spin" size={18} />
+                    Signing in...
+                  </span>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
 
-              <div className="flex items-center gap-3">
-                <div className="h-px bg-gray-300 w-full" />
-                <span className="text-sm text-gray-500">or</span>
-                <div className="h-px bg-gray-300 w-full" />
-              </div>
-
-              <button
-                type="button"
-                className="w-full py-3 rounded-lg border border-gray-300 bg-white hover:bg-gray-50 transition flex items-center justify-center gap-3"
-              >
-                <img
-                  src="https://www.svgrepo.com/show/475656/google-color.svg"
-                  className="w-5 h-5"
-                  alt="google"
-                />
-                <span className="text-gray-700 font-medium">
-                  Sign in with Google
-                </span>
-              </button>
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              New employee?{" "}
-              <Link to="/register" className="text-[#071A84] hover:underline">
-                Register account
+              Don’t have an account?{" "}
+              <Link to="/register" className="text-[#0f172a] hover:underline">
+                Create one
               </Link>
             </div>
           </CardContent>
         </Card>
       </div>
-
-      {/* Animations */}
-      <style>{`
-        @keyframes blob1 { 0%,100%{transform:translate(0)} 50%{transform:translate(40px,-40px)} }
-        @keyframes blob2 { 0%,100%{transform:translate(0)} 50%{transform:translate(-40px,40px)} }
-        .animate-blob1 { animation:blob1 20s infinite; }
-        .animate-blob2 { animation:blob2 25s infinite; }
-      `}</style>
     </div>
   );
 };

@@ -11,7 +11,7 @@ import { ActivityFeed } from "@/components/common/ActivityFeed";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 
-/* ----------------------------- STATIC DATA ----------------------------- */
+/*  STATIC DATA  */
 
 const KPI_DATA = [
   {

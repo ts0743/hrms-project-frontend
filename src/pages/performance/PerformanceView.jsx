@@ -17,7 +17,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogClose,
+} from "@/components/ui/dialog";
 import { Rating } from "@/components/ui/rating";
 
 import { useAuthStore } from "@/stores/authStore";
@@ -27,6 +33,7 @@ export default function PerformanceModule() {
   const user = useAuthStore((s) => s.user);
 
   const isEmployee = user?.role === "EMPLOYEE";
+  const isHR = user?.role === "HR";
   const canViewAll =
     user?.role === "HR" || user?.role === "ADMIN" || user?.role === "MANAGER";
 
@@ -39,7 +46,15 @@ export default function PerformanceModule() {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState(null);
 
-  // FETCH DATA (same pattern as attendance)
+  const [newReview, setNewReview] = useState({
+    employeeId: "",
+    rating: 0,
+    goal: "",
+    feedback: "",
+    reviewDate: "",
+    reviewerId: user?.id || "",
+  });
+
   const fetchData = async () => {
     if (!user?.role) return;
 
@@ -47,24 +62,20 @@ export default function PerformanceModule() {
     setError(null);
 
     try {
-      // STEP 1 — fetch employees first
       const employeeData = await employeeService.getAll();
-      const employeeList =
-        Array.isArray(employeeData)
-          ? employeeData
-          : Array.isArray(employeeData?.data)
-          ? employeeData.data
-          : employeeData?.content || [];
+      const employeeList = Array.isArray(employeeData)
+        ? employeeData
+        : Array.isArray(employeeData?.data)
+        ? employeeData.data
+        : employeeData?.content || [];
 
       setEmployees(employeeList);
 
       let performanceData = [];
 
       if (isEmployee) {
-        // STEP 2 — get employeeId safely
         let employeeId = user?.id;
 
-        // fallback → match by email
         if (!employeeId && user?.email && employeeList.length) {
           const matchedEmployee = employeeList.find(
             (emp) => emp.email === user.email
@@ -73,7 +84,6 @@ export default function PerformanceModule() {
         }
 
         if (!employeeId) {
-          console.warn("Employee ID not found for current user:", user);
           setReviews([]);
         } else {
           const res = await performanceService.getByEmployee(employeeId);
@@ -86,7 +96,6 @@ export default function PerformanceModule() {
           setReviews(performanceData);
         }
       } else {
-        // HR/Admin/Manager → fetch all
         const res = await performanceService.getAll();
         performanceData = Array.isArray(res)
           ? res
@@ -108,7 +117,6 @@ export default function PerformanceModule() {
     fetchData();
   }, [user]);
 
-  // Employee map (same as attendance)
   const employeeMap = useMemo(() => {
     const map = {};
     employees.forEach((emp) => {
@@ -134,23 +142,6 @@ export default function PerformanceModule() {
           .includes(searchTerm.toLowerCase())
   );
 
-  const avgRating = (
-    reviews.reduce((sum, r) => sum + Number(r.rating || 0), 0) /
-    Math.max(reviews.length, 1)
-  ).toFixed(1);
-
-  const completedCount = reviews.filter((r) => r.rating && r.feedback).length;
-  const pendingCount = reviews.length - completedCount;
-
-  const highestRating = reviews.reduce(
-    (max, r) => (Number(r.rating || 0) > Number(max.rating || 0) ? r : max),
-    { rating: 0 }
-  );
-
-  const topEmployee = highestRating.employeeId
-    ? getEmployeeName(highestRating.employeeId)
-    : "-";
-
   const openModal = (review) => {
     setSelectedReview(review);
     setModalOpen(true);
@@ -170,19 +161,28 @@ export default function PerformanceModule() {
         }
       />
 
-      {/* Metrics */}
-      {!isEmployee && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <MetricCard title="Company Avg Rating" value={`${avgRating}/5`} />
-          <MetricCard title="Reviews Completed" value={completedCount} />
-          <MetricCard title="Pending Reviews" value={pendingCount} />
-          <MetricCard title="Top Rated Employee" value={topEmployee} />
-        </div>
-      )}
-
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Performance Records</CardTitle>
+
+          {isHR && (
+            <Button
+              onClick={() => {
+                setSelectedReview(null);
+                setNewReview({
+                  employeeId: "",
+                  rating: 0,
+                  goal: "",
+                  feedback: "",
+                  reviewDate: "",
+                  reviewerId: user?.id || "",
+                });
+                setModalOpen(true);
+              }}
+            >
+              Add Review
+            </Button>
+          )}
 
           {canViewAll && !isEmployee && (
             <div className="relative w-64">
@@ -204,15 +204,17 @@ export default function PerformanceModule() {
                 <TableHead>Employee</TableHead>
                 <TableHead>Rating</TableHead>
                 <TableHead>Status</TableHead>
+                <TableHead>Goal</TableHead>
+                <TableHead>Feedback</TableHead>
                 <TableHead>Review Date</TableHead>
-                {!isEmployee && <TableHead />}
+                {!isEmployee ? <TableHead /> : null}
               </TableRow>
             </TableHeader>
 
             <TableBody>
               {filteredReviews.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="text-center py-10">
+                  <TableCell colSpan={7} className="text-center py-10">
                     No performance records found.
                   </TableCell>
                 </TableRow>
@@ -224,19 +226,17 @@ export default function PerformanceModule() {
                         ? user?.name
                         : getEmployeeName(rev.employeeId)}
                     </TableCell>
-
                     <TableCell>{rev.rating || "-"}</TableCell>
-
                     <TableCell>
                       <StatusBadge status={getStatus(rev)} />
                     </TableCell>
-
+                    <TableCell>{rev.goal || "-"}</TableCell>
+                    <TableCell>{rev.feedback || "-"}</TableCell>
                     <TableCell>
                       {rev.reviewDate
                         ? new Date(rev.reviewDate).toLocaleDateString()
                         : "Not reviewed"}
                     </TableCell>
-
                     {!isEmployee && (
                       <TableCell>
                         <Button
@@ -257,7 +257,6 @@ export default function PerformanceModule() {
         </CardContent>
       </Card>
 
-      {/* Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent>
           <DialogHeader>
@@ -269,27 +268,122 @@ export default function PerformanceModule() {
             </DialogClose>
           </DialogHeader>
 
-          {selectedReview && (
+          {selectedReview ? (
             <div className="space-y-3 mt-4">
               <p>Employee: {getEmployeeName(selectedReview.employeeId)}</p>
-              <p>Status: {getStatus(selectedReview)}</p>
               <Rating value={Number(selectedReview.rating || 0)} readOnly />
-              <p>Goal: {selectedReview.goal || "No goal defined"}</p>
-              <p>Feedback: {selectedReview.feedback || "No feedback provided"}</p>
+              <p>Goal: {selectedReview.goal || "-"}</p>
+              <p>Feedback: {selectedReview.feedback || "-"}</p>
             </div>
+          ) : (
+            isHR && (
+              <div className="space-y-4 mt-4">
+
+                <select
+                  className="w-full border rounded p-2"
+                  value={newReview.employeeId}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, employeeId: e.target.value })
+                  }
+                >
+                  <option value="">Select Employee</option>
+                  {employees.map((emp) => (
+                    <option key={emp.id} value={emp.id}>
+                      {emp.firstName} {emp.lastName}
+                    </option>
+                  ))}
+                </select>
+
+                <Rating
+                  value={newReview.rating}
+                  onChange={(val) =>
+                    setNewReview({ ...newReview, rating: val })
+                  }
+                />
+
+                <Input
+                  placeholder="Goal"
+                  value={newReview.goal}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, goal: e.target.value })
+                  }
+                />
+
+                <Input
+                  placeholder="Feedback"
+                  value={newReview.feedback}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, feedback: e.target.value })
+                  }
+                />
+
+                <Input
+                  type="date"
+                  value={newReview.reviewDate}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, reviewDate: e.target.value })
+                  }
+                />
+
+                <Input
+                  placeholder="Reviewer ID"
+                  value={newReview.reviewerId}
+                  onChange={(e) =>
+                    setNewReview({ ...newReview, reviewerId: e.target.value })
+                  }
+                />
+
+                <Button
+                  onClick={async () => {
+                    try {
+                      if (
+                        !newReview.employeeId ||
+                        !newReview.goal ||
+                        !newReview.rating ||
+                        !newReview.reviewDate ||
+                        !newReview.reviewerId
+                      ) {
+                        alert("Please fill all required fields.");
+                        return;
+                      }
+
+                      const payload = {
+                        employeeId: Number(newReview.employeeId),
+                        goal: newReview.goal.trim(),
+                        rating: String(newReview.rating),
+                        feedback: newReview.feedback?.trim() || "",
+                        reviewDate: newReview.reviewDate,
+                        reviewerId: Number(newReview.reviewerId),
+                      };
+
+                      await performanceService.create(payload);
+
+                      setModalOpen(false);
+
+                      setNewReview({
+                        employeeId: "",
+                        rating: 0,
+                        goal: "",
+                        feedback: "",
+                        reviewDate: "",
+                        reviewerId: user?.id || "",
+                      });
+
+                      fetchData();
+                    } catch (err) {
+                      console.error("Create review error:", err);
+                      alert("Failed to submit review.");
+                    }
+                  }}
+                >
+                  Submit Review
+                </Button>
+
+              </div>
+            )
           )}
         </DialogContent>
       </Dialog>
     </div>
   );
 }
-
-// Metric Card
-const MetricCard = ({ title, value }) => (
-  <Card>
-    <CardContent className="p-6">
-      <p className="text-xs text-muted-foreground uppercase">{title}</p>
-      <p className="text-2xl font-bold">{value}</p>
-    </CardContent>
-  </Card>
-);
