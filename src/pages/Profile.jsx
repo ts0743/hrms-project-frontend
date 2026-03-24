@@ -14,7 +14,6 @@ export default function Profile() {
   const { toast } = useToast();
   const user = useAuthStore((s) => s.user);
 
-  /* Updated so it works for Employee / HR / Admin */
   const userId = user?.id || user?.employeeId;
 
   const [loading, setLoading] = useState(false);
@@ -30,11 +29,23 @@ export default function Profile() {
   const fetchProfile = async () => {
     if (!userId) return;
 
+    const token = localStorage.getItem("hris_token");
+
+    if (!token) {
+      console.error("JWT token missing. Please login again.");
+      return;
+    }
+
     try {
       setLoading(true);
 
       const response = await axios.get(
-        `http://localhost:8083/hris/api/employee/${userId}`
+        `http://localhost:8083/hris/api/employee/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       const data = response.data;
@@ -76,12 +87,25 @@ export default function Profile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    const token = localStorage.getItem("hris_token");
+
+    if (!token) {
+      console.error("JWT token missing. Please login again.");
+      return;
+    }
+
     try {
       setLoading(true);
 
+      // ✅ Only change - using dedicated profile update endpoint
       await axios.put(
-        `http://localhost:8083/hris/api/employee/${userId}`,
-        formData
+        `http://localhost:8083/hris/api/employee/employee/${userId}/profile`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
 
       toast({
@@ -112,7 +136,6 @@ export default function Profile() {
       </div>
     );
   }
-
 
   return (
     <div className="max-w-3xl mx-auto py-8 px-4 space-y-8">

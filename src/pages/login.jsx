@@ -71,7 +71,7 @@ const Login = () => {
 
       if (!data?.token) throw new Error("Invalid server response");
 
-      login(data);
+      await login(data);
 
       if (form.remember) {
         localStorage.setItem("hris_user_email", form.email);
@@ -79,11 +79,9 @@ const Login = () => {
         localStorage.removeItem("hris_user_email");
       }
 
-      if (["ADMIN", "HR"].includes(data.role)) {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/employee/dashboard");
-      }
+      // ✅ All roles navigate to "/" - ProtectedRoute in App.jsx handles role-based access
+      navigate("/");
+
     } catch (err) {
       if (err.response?.status === 401) {
         setError("Invalid credentials. Please try again.");
@@ -125,10 +123,8 @@ const Login = () => {
             </p>
           </div>
 
-          {/* PREMIUM DASHBOARD MOCK */}
           <div className="bg-white/5 border border-white/10 backdrop-blur-xl rounded-3xl p-8 space-y-6 shadow-2xl">
 
-            {/* Stat Grid */}
             <div className="grid grid-cols-3 gap-4">
 
               <div className="bg-white/10 rounded-2xl p-4 text-center">
@@ -151,7 +147,6 @@ const Login = () => {
 
             </div>
 
-            {/* Clean Minimal Chart */}
             <div className="flex items-end gap-3 h-20 pt-4">
               <div className="w-4 bg-white/30 rounded-lg h-8"></div>
               <div className="w-4 bg-white/30 rounded-lg h-14"></div>
@@ -260,7 +255,7 @@ const Login = () => {
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <Link to="/register" className="text-[#0f172a] hover:underline">
                 Create one
               </Link>

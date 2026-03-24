@@ -20,6 +20,9 @@ export const useAuthStore = create((set) => ({
       role: data.role,
     };
 
+    // 🔹 store token early so API calls can use it
+    localStorage.setItem("hris_token", data.token);
+
     // Step 2: If no ID, fetch employee info by email
     if (!user.id && user.email) {
       try {
@@ -39,7 +42,6 @@ export const useAuthStore = create((set) => ({
     }
 
     // Step 3: Store in localStorage
-    localStorage.setItem("hris_token", data.token);
     localStorage.setItem("hris_user", JSON.stringify(user));
     localStorage.setItem("hris_role", data.role);
 
@@ -89,4 +91,3 @@ export const useAuthStore = create((set) => ({
     }
   },
 }));
-

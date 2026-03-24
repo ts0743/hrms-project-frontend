@@ -223,7 +223,7 @@ export default function PerformanceModule() {
                   <TableRow key={rev.id}>
                     <TableCell>
                       {isEmployee
-                        ? user?.name
+                        ? user?.username
                         : getEmployeeName(rev.employeeId)}
                     </TableCell>
                     <TableCell>{rev.rating || "-"}</TableCell>

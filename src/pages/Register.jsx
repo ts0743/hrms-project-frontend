@@ -11,7 +11,8 @@ const Register = () => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
@@ -41,7 +42,8 @@ const Register = () => {
 
     try {
       await authService.register({
-        username: formData.fullName,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         password: formData.password,
         role: formData.role,
@@ -94,20 +96,37 @@ const Register = () => {
               </div>
             )}
 
-            {/* Full Name */}
-            <div className="relative">
-              <Input
-                name="fullName"
-                placeholder=" "
-                value={formData.fullName}
-                onChange={handleChange}
-                disabled={loading}
-                className="peer pt-6 pb-2 bg-white/10 border-white/20 text-white focus:ring-2 focus:ring-indigo-400 rounded-lg"
-                required
-              />
-              <Label className={`floating-label ${formData.fullName && "active"}`}>
-                Full Name
-              </Label>
+            {/* First Name + Last Name side by side */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="relative">
+                <Input
+                  name="firstName"
+                  placeholder=" "
+                  value={formData.firstName}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className="peer pt-6 pb-2 bg-white/10 border-white/20 text-white focus:ring-2 focus:ring-indigo-400 rounded-lg"
+                  required
+                />
+                <Label className={`floating-label ${formData.firstName && "active"}`}>
+                  First Name
+                </Label>
+              </div>
+
+              <div className="relative">
+                <Input
+                  name="lastName"
+                  placeholder=" "
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  disabled={loading}
+                  className="peer pt-6 pb-2 bg-white/10 border-white/20 text-white focus:ring-2 focus:ring-indigo-400 rounded-lg"
+                  required
+                />
+                <Label className={`floating-label ${formData.lastName && "active"}`}>
+                  Last Name
+                </Label>
+              </div>
             </div>
 
             {/* Email */}
